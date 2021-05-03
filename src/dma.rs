@@ -303,8 +303,11 @@ macro_rules! dma {
                             !self.payload.channel.in_progress()
                         }
 
-                        pub fn stop(&mut self) {
+                        /// Stops the transfer and returns the underlying buffer and RxDma
+                        pub fn stop(mut self) -> (&'static mut [B; 2], RxDma<PAYLOAD, $CX>) {
                             self.payload.stop();
+
+                            (self.buffer, self.payload)
                         }
 
                         pub fn wait(mut self) -> (BUFFER, RxDma<PAYLOAD, $CX>) {
