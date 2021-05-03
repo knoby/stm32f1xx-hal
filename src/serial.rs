@@ -63,6 +63,8 @@ pub enum Event {
     Rxne,
     /// New data can be sent
     Txe,
+    /// Idle Line was detected
+    IdleLine,
 }
 
 /// Serial error
@@ -361,6 +363,7 @@ macro_rules! hal {
                     match event {
                         Event::Rxne => self.usart.cr1.modify(|_, w| w.rxneie().set_bit()),
                         Event::Txe => self.usart.cr1.modify(|_, w| w.txeie().set_bit()),
+                        Event::IdleLine=> self.usart.cr1.modify(|_, w| w.idleie().set_bit()),
                     }
                 }
 
@@ -371,7 +374,15 @@ macro_rules! hal {
                     match event {
                         Event::Rxne => self.usart.cr1.modify(|_, w| w.rxneie().clear_bit()),
                         Event::Txe => self.usart.cr1.modify(|_, w| w.txeie().clear_bit()),
+                        Event::IdleLine=> self.usart.cr1.modify(|_, w| w.idleie().clear_bit()),
                     }
+                }
+
+
+                /// Reset the Idle Line Detected Bit in Status Register
+                pub fn reset_idle_line_detected_status(&mut self) {
+                    self.usart.sr.read();
+                    self.usart.dr.read();
                 }
 
                 /// Returns ownership of the borrowed register handles
