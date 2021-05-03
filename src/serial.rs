@@ -607,6 +607,10 @@ macro_rules! serialdma {
                 pub fn reset_idle_line_event(&mut self) {
                     unsafe { (*$USARTX::ptr()).sr.read(); (*$USARTX::ptr()).dr.read(); }
                 }
+
+                pub fn get_remaining_transfers(&self) -> u32 {
+                    self.channel.get_ndtr()
+                }
             }
 
             impl $txdma {
