@@ -419,8 +419,20 @@ macro_rules! hal {
                     unsafe { (*$USARTX::ptr()).cr1.modify(|_, w| w.rxneie().set_bit()) };
                 }
 
+                pub fn listen_idle_line(&mut self) {
+                    unsafe { (*$USARTX::ptr()).cr1.modify(|_, w| w.idleie().set_bit()) };
+                }
+
                 pub fn unlisten(&mut self) {
                     unsafe { (*$USARTX::ptr()).cr1.modify(|_, w| w.rxneie().clear_bit()) };
+                }
+
+                pub fn unlisten_idle_line(&mut self) {
+                    unsafe { (*$USARTX::ptr()).cr1.modify(|_, w| w.idleie().clear_bit()) };
+                }
+
+                pub fn reset_idle_line_event(&mut self) {
+                    unsafe { (*$USARTX::ptr()).sr.read(); (*$USARTX::ptr()).dr.read(); }
                 }
             }
 
