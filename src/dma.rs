@@ -303,6 +303,10 @@ macro_rules! dma {
                             !self.payload.channel.in_progress()
                         }
 
+                        pub fn stop(&mut self) {
+                            self.payload.stop();
+                        }
+
                         pub fn wait(mut self) -> (BUFFER, RxDma<PAYLOAD, $CX>) {
                             while !self.is_done() {}
 
