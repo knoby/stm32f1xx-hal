@@ -304,10 +304,29 @@ macro_rules! dma {
                         }
 
                         /// Stops the transfer and returns the underlying buffer and RxDma
-                        pub fn stop(mut self) -> (&'static mut [B; 2], RxDma<PAYLOAD, $CX>) {
+                        pub fn stop(mut self) -> (BUFFER, RxDma<PAYLOAD, $CX>) {
                             self.payload.stop();
 
-                            (self.buffer, self.payload)
+                            // we need a read here to make the Acquire fence effective
+                            // we do *not* need this if `dma.stop` does a RMW operation
+                            unsafe { ptr::read_volatile(&0); }
+
+                            // we need a fence here for the same reason we need one in `Transfer.wait`
+                            atomic::compiler_fence(Ordering::Acquire);
+
+                            // `Transfer` needs to have a `Drop` implementation, because we accept
+                            // managed buffers that can free their memory on drop. Because of that
+                            // we can't move out of the `Transfer`'s fields, so we use `ptr::read`
+                            // and `mem::forget`.
+                            //
+                            // NOTE(unsafe) There is no panic branch between getting the resources
+                            // and forgetting `self`.
+                            unsafe {
+                                let buffer = ptr::read(&self.buffer);
+                                let payload = ptr::read(&self.payload);
+                                mem::forget(self);
+                                (buffer, payload)
+                            }
                         }
 
                         pub fn wait(mut self) -> (BUFFER, RxDma<PAYLOAD, $CX>) {
